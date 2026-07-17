@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agape Property Management — Book a Townhome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #241b16;
+    --ink-soft: #5c554d;
+    --olive: #3f4a33;
+    --olive-dark: #2c3423;
+    --olive-light: #e7e9de;
+    --paper: #f5f1ea;
+    --card: #ffffff;
+    --line: #e2ddd0;
+    --green: #4a7856;
+    --green-bg: #eaf2ec;
+    --amber: #b8863a;
+    --amber-bg: #faf1e0;
+    --red: #a3403a;
+    --red-bg: #f7e8e6;
+    --radius: 10px;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .app { max-width: 960px; margin: 0 auto; padding: 0 0 3rem; }
+
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--line);
+    background: var(--card);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; letter-spacing: 0.2px; }
+  .brand img { height: 30px; width: auto; display: block; }
+  .modeToggle { display: flex; gap: 6px; }
+  .modeToggle button {
+    font-size: 12px; padding: 7px 12px; border-radius: 20px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink-soft); cursor: pointer; font-family: var(--sans);
+  }
+  .modeToggle button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .stepper { display: flex; gap: 4px; padding: 16px 20px 0; overflow-x: auto; }
+  .step {
+    flex: 1; min-width: 78px; text-align: center; font-size: 10.5px; color: var(--ink-soft);
+    padding-bottom: 10px; border-bottom: 3px solid var(--line); text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .step.done { border-color: var(--olive); color: var(--olive-dark); font-weight: 600; }
+  .step.current { border-color: var(--ink); color: var(--ink); font-weight: 600; }
+
+  .screen { padding: 24px 20px; }
+  h1 { font-family: var(--serif); font-size: 28px; font-weight: 600; margin: 0 0 6px; letter-spacing: 0.2px; }
+  h2 { font-family: var(--serif); font-size: 20px; font-weight: 600; margin: 0 0 10px; }
+  .sub { color: var(--ink-soft); font-size: 14px; margin: 0 0 20px; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
+
+  .propGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 640px) { .propGrid { grid-template-columns: 1fr; } }
+  .propCard {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+    cursor: pointer; transition: box-shadow .15s, transform .15s; position: relative;
+  }
+  .propCard:hover { box-shadow: 0 4px 16px rgba(36,27,22,0.08); transform: translateY(-1px); }
+  .propCard.selected { outline: 2px solid var(--olive); }
+  .propCard.disabled { cursor: not-allowed; opacity: 0.6; }
+  .propPhoto {
+    height: 140px; background: linear-gradient(135deg, #e9e3d5, #d8cfba);
+    display: flex; align-items: center; justify-content: center; color: var(--ink-soft); font-size: 12px; position: relative;
+  }
+  .badge { position: absolute; top: 10px; left: 10px; background: var(--olive); color: #fff; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+  .propBody { padding: 14px; }
+  .propName { font-family: var(--serif); font-weight: 600; font-size: 17px; margin-bottom: 2px; }
+  .propMeta { font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; }
+  .propPrice { font-size: 15px; font-weight: 600; color: var(--olive-dark); }
+  .propPrice span { font-size: 11px; font-weight: 400; color: var(--ink-soft); }
+  .amenityRow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .pill { font-size: 10.5px; background: var(--olive-light); color: var(--olive-dark); padding: 3px 8px; border-radius: 20px; }
+  .pill.touch { background: var(--amber-bg); color: var(--amber); }
+
+  label { display: block; font-size: 12.5px; color: var(--ink-soft); margin: 12px 0 5px; font-weight: 500; }
+  label:first-child { margin-top: 0; }
+  input[type=text], input[type=email], input[type=tel], input[type=date], input[type=number], select, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 14px; background: #fff; color: var(--ink); font-family: var(--sans);
+  }
+  textarea { resize: vertical; min-height: 70px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--olive); box-shadow: 0 0 0 3px rgba(63,74,51,0.12); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .toggleRow { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--line); }
+  .toggleRow:first-child { border-top: none; }
+  .toggleRow .txt { font-size: 13.5px; }
+  .toggleRow .txt .d { font-size: 12px; color: var(--ink-soft); }
+  .switch { position: relative; width: 42px; height: 24px; background: var(--line); border-radius: 20px; cursor: pointer; flex-shrink: 0; }
+  .switch.on { background: var(--olive); }
+  .switch .knob { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: left .15s; }
+  .switch.on .knob { left: 21px; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 20px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--sans); }
+  .btn-primary { background: var(--ink); color: #fff; }
+  .btn-primary:hover { background: #362a22; }
+  .btn-secondary { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .btn-secondary:hover { background: #f5f3ee; }
+  .btn-danger { background: #fff; color: var(--red); border: 1px solid var(--red-bg); }
+  .btn-danger:hover { background: var(--red-bg); }
+  .btn-block { width: 100%; }
+  .btn-sm { padding: 7px 12px; font-size: 12.5px; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btnRow { display: flex; gap: 10px; margin-top: 20px; }
+
+  .summaryLine { display: flex; justify-content: space-between; font-size: 13.5px; padding: 6px 0; }
+  .summaryLine.total { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 10px; font-weight: 600; font-size: 15px; }
+  .summaryLine .muted { color: var(--ink-soft); }
+  .summaryLine .tag { font-size: 10.5px; background: var(--amber-bg); color: var(--amber); padding: 1px 7px; border-radius: 10px; margin-left: 6px; }
+
+  .checklist { list-style: none; padding: 0; margin: 0; }
+  .checklist li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; font-size: 13.5px; }
+  .checklist .num { width: 20px; height: 20px; border-radius: 50%; background: var(--olive-light); color: var(--olive-dark); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  .uploadBox { border: 1.5px dashed var(--line); border-radius: 10px; padding: 24px; text-align: center; color: var(--ink-soft); font-size: 13px; cursor: pointer; background: #fdfcfa; }
+  .uploadBox.filled { border-color: var(--green); background: var(--green-bg); color: var(--green); font-weight: 600; }
+
+  .leaseBox { border: 1px solid var(--line); border-radius: 8px; padding: 16px; font-size: 12.5px; color: var(--ink-soft); max-height: 180px; overflow-y: auto; background: #fdfcfa; margin-bottom: 14px; }
+  .leaseBox p { margin: 0 0 8px; }
+  .sigBox { border: 1px solid var(--line); border-radius: 8px; height: 70px; display: flex; align-items: center; justify-content: center; color: var(--ink-soft); font-size: 13px; font-style: italic; background: #fff; cursor: text; }
+  .sigBox.signed { font-family: var(--serif); font-style: italic; font-size: 24px; color: var(--ink); border-color: var(--olive); }
+
+  .confirmHero { text-align: center; padding: 20px 0 8px; }
+  .checkCircle { width: 56px; height: 56px; border-radius: 50%; background: var(--olive-light); color: var(--olive-dark); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 14px; }
+
+  .statGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+  @media (max-width: 640px) { .statGrid { grid-template-columns: repeat(2, 1fr); } }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+  .stat .label { font-size: 11.5px; color: var(--ink-soft); margin-bottom: 4px; }
+  .stat .value { font-family: var(--serif); font-size: 22px; font-weight: 600; }
+
+  table.admin { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.admin th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; color: var(--ink-soft); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  table.admin td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .statusTag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+  .statusTag.confirmed { background: var(--green-bg); color: var(--green); }
+  .statusTag.pending { background: var(--amber-bg); color: var(--amber); }
+  .statusTag.occupied { background: var(--olive-light); color: var(--olive-dark); }
+  .statusTag.available { background: var(--green-bg); color: var(--green); }
+
+  .miniLabel { font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--ink-soft); font-weight: 600; margin-bottom: 8px; }
+  .cardHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+
+  .modalWrap { min-height: 100vh; background: rgba(36,27,22,0.5); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; position: fixed; inset: 0; z-index: 50; overflow-y: auto; }
+  .modal { background: var(--card); border-radius: 14px; width: 100%; max-width: 480px; padding: 22px; }
+  .modalHead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .xbtn { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--ink-soft); }
+
+  .extendBox { border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 10px; cursor: pointer; }
+  .extendBox.active { border-color: var(--olive); background: var(--olive-light); }
+  .extendBox .t { font-weight: 600; font-size: 14px; }
+  .extendBox .d { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+  .touchNote { display: flex; gap: 10px; align-items: flex-start; background: var(--olive-light); border-radius: var(--radius); padding: 14px; font-size: 12.5px; color: var(--olive-dark); margin-top: 10px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const { useState } = React;
+const h = React.createElement;
+const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t+KAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAFHGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI1LTA5LTI0PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkV4dElkPjgwMzU2ODRhLThjYjgtNDg0NS1iYTRkLWI1YWIxOTM2YmFhMjwvQXR0cmliOkV4dElkPgogICAgIDxBdHRyaWI6RmJJZD41MjUyNjU5MTQxNzk1ODA8L0F0dHJpYjpGYklkPgogICAgIDxBdHRyaWI6VG91Y2hUeXBlPjI8L0F0dHJpYjpUb3VjaFR5cGU+CiAgICA8L3JkZjpsaT4KICAgPC9yZGY6U2VxPgogIDwvQXR0cmliOkFkcz4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6ZGM9J2h0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvJz4KICA8ZGM6dGl0bGU+CiAgIDxyZGY6QWx0PgogICAgPHJkZjpsaSB4bWw6bGFuZz0neC1kZWZhdWx0Jz5CbGFjayBXaGl0ZSBNaW5pbWFsIFNpbXBsZSBNb2Rlcm4gQ3JlYXRpdmUgU3R1ZGlvIEVnbyBMb2dvIC0gMTwvcmRmOmxpPgogICA8L3JkZjpBbHQ+CiAgPC9kYzp0aXRsZT4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6cGRmPSdodHRwOi8vbnMuYWRvYmUuY29tL3BkZi8xLjMvJz4KICA8cGRmOkF1dGhvcj5EbGluZHNleTwvcGRmOkF1dGhvcj4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6eG1wPSdodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvJz4KICA8eG1wOkNyZWF0b3JUb29sPkNhbnZhIChSZW5kZXJlcikgZG9jPURBR3gxbVVsMXpFIHVzZXI9VUFHVUVDWHNXeFEgYnJhbmQ9QkFHVUVOLXp6TTQgdGVtcGxhdGU9QmxhY2sgV2hpdGUgTWluaW1hbCBTaW1wbGUgTW9kZXJuIENyZWF0aXZlIFN0dWRpbyBFZ28gTG9nbzwveG1wOkNyZWF0b3JUb29sPgogPC9yZGY6RGVzY3JpcHRpb24+CjwvcmRmOlJERj4KPC94OnhtcG1ldGE+Cjw/eHBhY2tldCBlbmQ9J3InPz4BOJaWAABISElEQVR4nOzcP69lcxzF4TUjEhKRnEmMEI0dCgmlRugkZphEr1Jp9N6A6BQSiUJhGoVSoSJIFP4EIVNMNX4akxEJx5XQCKOYeQFy7b3Pvsvz9Pe7dnU+2Scn91QAgBPv1KEfAAD47wQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHQAKCDoAFBA0AGggKADQAFBB4ACgg4ABQQdAAoIOgAUEHROrGmadkmeSfJkkvuS3JvkziTXklxNcjnJu0m+HGNcP9RzAqxB0Dlxpml6OMnLuRHzW//Fn/yQ5NUkb4wx/lzy2QAORdA5MaZpuiPJa0meT3LLMU5cSfLiGOP9OZ8LYAuO86EIq5umaUryQZJzSU4f88yZJM/tdruj/X7/xWwPB7ABgs7mTdP0UJJPk9w/w7nTSc7tdrvb9vv9hzPcA9gEQWfTpmk6k+Sj3PjR25we3+123+33+0sz3wU4iON+dQlreTvJAwvdfvPm2z/AiSfobNY0TReSnF9w4vYkryx4H2A1fuXOJk3TdDrJt0keWWHusTHGZyvsACzGGzpb9UTWiXmSvLDSDsBiBJ2tenbFradvfiMAcGL5EGOrLqy4dTbJoyvuAcxO0Nmcm2/L08qzD668BzArQWeL7s76/yPhnpX3AGYl6GzR2QNs3nWATYDZCDpbdHSAzd8OsAkwG0Fni376n2wCzEbQ2Zwxxh9Jfl959uuV9wBmJehs1bUVt35N8s2KewCzE3S26vMVt94ZY/y94h7A7ASdrfpkpZ3rSV5faQtgMYLOVn280s7FMcbllbYAFiPobNIY40qS7xee+THJSwtvAKxC0Nmyiwve/iXJU2OMnxfcAFiNoLNlbyX5a4G7R7kR80sL3AY4CEFns8YYV5O8N/PZoyTnxxhfzXwX4KD+AQAA///snXncpXP5x9/TSPaMtbGEj33LFiprSUiWsUQo2SVrZMsuQoh+ZN+JZCeiFClL9hIxXJaEsY2dITO/P67vY545c85ztvv7vc/yfb9e5zXPc5/7vq5rznOf+/ou15IdeqbT+UWBsn4DLG5mdxUoM5PJZDqCYWUbkMnUQ9INwLptiPg3sKuZ3VqQSZlMJtNx5Bl6phs4EGil8MtLwG7AF7Izz2QyvU7qntOZTNOMHTt2zIgRI+YDlm7wko+BI4DNzOxvY8eOzVXgMplMz5OX3DNdgaRZgEeA2euc+i6whZldF9+qTCaT6RzyDD3TFYwdO/a9ESNGGLDZEKdNANY2s5sTmZXJZDIdQ3boma5h7Nixj40YMWJB4As1TjnLzHJd9kwm05fkoLhMt/EDPGq9GsemNCSTyWQ6ibyHnuk6JC0K3ANMP+jw62Y2c0kmZTKZTOnkGXqm6zCzx4Dv43vmA4wpx5pMJpPpDLJDj4CkvPIRGTO7CvjRoEPzSpqqLHs6iXz/ZTL9Sf7iN4mk6YBlgWWAeYDPh39nxpeApwOmwtOn3gyvNwb9PAb4O3CXmVlq+1Mj6VPAosAiwILhNT8wIxM/r+nx3PG3w+st/LN6Cng8vB4DnjGz8RXyj8ILzwBsaWa/jvxfKhVJswMrAIvj997c4d8RTPwsh+Of48B9N/DvW8AzwN3A3Wb2SmLzM11GGCQvBiyB33OLArMBM4TXZ/GJ4dvAO/g99iwwOrz+BdxrZh8lN74PyQ69DpLmBb6JP0S/CCwM/Ae/UZ/GH5DPAi8z0SGNY+LNPiL8O/D7okHWIsBr+MP1HuBO4PZKh9WNSFoWWB1YNbxGVDntn8AVwN/wim5TAHMCqwGbAvNVuWYs8CfgVuCPZjY66PsVHiz3HLCYmb1b4H+nVCR9Efg6fu8tD4xk0AAnvJ7D76WB+w/8XvssPnCaEb//ZgKWAlYE5sIHTPfg9+Dt3dp9TtJMwJRm9lIbMqYHPgdMC0wTXu/hbXZfw2M0YnT+6zgkLQ6sA6wNrAJMWXHKu8CFwF9xp/0ePqj8KvBd/HOsPP9vwG3AVWb2eCzb+53s0KsgScAmwMa4830cuBr4M3Cnmb1TgI4ZguwVw7+r4Q7rLODcdh5OZSBpMeA74TX/EKe+DOwOXG5mE6qdIGkKYHvgOCYNfKvkaeAi4HxgzyD3ZDPbs1n7OwlJK+CDmo2BeYE7gBvx++/BImY7kuZk4r23IrAycD9wBnCpmX3Qro4iCStjC+ID6gWYuNqzIDBLOO15YDczu6aOrJmBr+H/50XDa646JnyMZ1c8DDwI3Af8rVdmnpJGAtsC21F9MD3AqcAhZvZ6DTlTAwcAP6H2lu7fgYuBX5vZay0bnZmM7NAD4UbcFtgGWC4c/h1wVIruXJKmAb4d9H8JH0Ccbma3xdbdKsHxbo470+XqnA7+IFzfzJ5vUP4iwPX4A3woJuCz9s8DCwF7mdlJjejoFMIDdTdgS/z/8SE+uDvBzJ5OpH9r/P6bFbgAv/+SzaYkfQb/W1dz2nM0KOZDYBkze7RC9kLAVniTn6UpJn7oTeD3eIvfG8zsjQJkJkXSasCuwIb4KlktPgR2MLMLG5T7TeAq4DNDnPYuPoA8MbRKzrRJ3zv0MFrfBX+YzhoOvwl8v95IP6JNC+GDi+/hy9H7mNmfyrClGmHwsT0elDZPg5c9AaxiZi83qWtefGlvzmauw2dqpzR5TXLCoGVvfKly4OH3GLBxiOYvw6ZV8ZnaxsDNwH5m9mRBsqfAZ4ALManDXhAfyBThaA8xsyPD/u/3mDhIjsm7+KzzVDP7Z2RdbRO2xY4G1mrwkm3N7LwmdYwCrqS+nxkHnAkcamZjm9GRmZS+deiS5gb2wR9c0w56axywmpndU4phg5D0adzGg4E/4E7quZJt2hIv4NKMg/0AWK5y1tSEzi/jy87NVjY8BR8MjWtFb0zCsvp++MxosBN7ClixE5YiJc0KHI+X2z0FONjM3m/guk/hwXoLMrnjFkPPBIvgMnxpfE98Of55JsYaDMP7ATSyzN4qtwGHd+LqmqR5gGPwv2mjz/8TzGyfFvX9HH+GNcLLwP7A+bW24zJD03cOXdJw/It+OJM68gF+ZmYHVjleGpLmB36F73fuamaXlGDDssDJ+L5js+xtZie2qf+n+L5cszwAbD4QQFc2IYDrWHwgWe37t5aZ3ZLWqqGRtAZwGr6PvJWZ3V/lnAPwoL0F8eXyMlMIxwO3A5cCV9Sa9UlaAl+F2JWJ+/BFcj1wgJn9K4LsppG0A3ACQ8elVPIksESrg2JJUwKPMnRcTSV/Ar5rZi+0orOf6SuHLmlF4HSGbsO5sJk9kcikpgiz41PxvamdUgTkhAHQwcBBtFb7/0lgUTP7X5t2TBNkjWzh8reBXczs4nZsaBdJ38VnvLPVOOUFM2t2ayEJYX/7EHy2taeZnVbx/sXARsDUJZhXyVlmtmOjJ4d7a3fgUIofiHyMP3P2NbP3CpbdEGE18kw8ar1Z1jWzG9vUvxG+9N4MrwDbmNnv2tHdb/SFQw8pKT/DU5uG2qObAHy6k9NTwkz593iA2SZm9nadS9rRNS++L7hSG2K2KmpFQdIP8JWKVjkfX+FImtYmaQF8hvv1OqfeYWarJjCpZSRtgwfrHVe5khUCS7fDB3/12tzG5Awz27nZi0JJ4QvwlYaiGQ1snSLAdjCSvgZcjtfJaJa/mtkqBdnxD2DJJi+bABxmZkcUYUM/0POV4oJTuhP4IfX/v8OonjPdMZjZA3iK22LArZKqbRu0TYhSfYj2nPl/gd8UYxEA5+F5wa3yfeB+SUOt0BRKWK6+l/rOHDr83gMIgVGbA3uH/P/B770fAhFXwO+driIEIa4KxAiGXRC4Q9JPQ4xBdMIA+GZac+bgq0lFcUIL1wwDDpd0TgimzNShpx16WGK/G69y1Cj1UqRKJzx4VsEdwOVhWbwwwl7btXhhknY4q92l9sGE3Ohz2xSzMPBXSWsWYNKQhM/xJrywSyPM3w1lW83sCmADYOuwd175/nP4QPCG1La1S7jHNsFXc4pmOB4Hck2sgTh4UKKkU/HVrFYd4VPAdcVZxW/w7KFW2Ba4NuzHZ4agZx26pE3xQhzNLv19NYI5hWNmz+A5tavgwWqFEILPzqSYSOSLCpBRyfkFyJgWuEHSJgXImgxJwyQdi3+On27i0qmJn15VCGb2e2AH4ChJ367y/nv4ikjp0frNErbctseD2mKwHj6onLtowWH2fz6eitsOVxYZaR4GSr9tQ8Q3gXMKMqdn6UmHLml3fETYSoDOD7pleScE7+0C7BL2ytpC0gm0Fklejftj1KoPEcNFFDuZErhM0nYFyPqEsFpyGbBviyJ2L9CcqIS6+ecAp0qaLNAvpN4dlNywAghOfXO8el4MlgbulrRwUQLD6s65eE2DdrmqABmVXN7m9VtJOrIQS3qUnnPokrYCTqL1gL+58eC5riBEbv8FOCtE67aEpEOZtHtZu8QsylPUw2Y4/rk1HBHdAKfhFf9aZZMQ+Ngt7Id/jr+s8f6ZeFGhriOsMnwHbzoSgzmAP0oaqtRqM5yNV/trl//i5VmL5nYm9hpolYOKHoT3Ej3l0CWtjo9Q292HPE5SsxGZZbI/XrCjpWU2SXsAhxVpEF4IJxZFyh6GzzAbCVobEkkH4svQ7TAF8Ot2BmcpCTW9jwM2kzRZdHhoNtS1qUehfsEeEVXMhQe3tlXkRtJB+F5zEVwdo7CLmX1IMd/d0yV9owA5PUfPOPRQwvVimtuzrMVU+EO1K/prm9ndePGG3ZvdLpC0NtBW0ZcqvE28pUqAu/Dqc0UxBR5c2PLyp6SVgKLSaxam9oy3E7kAL+ayd433uy7ifTBmdi4Qs9jPfMAt8oZNTSNpQ4q79yDOcvsAtxcgYwrgt5K+UICsnqJnHDq+tFdkUY4laC3VoiyuxbcLNmv0glAG8mKKvw/+VmR0eyUhwKbo0rwjgOvDwLAp5J3ALqa1wju12E5Sw3/LMjGzF/Fsko0lfb7KKU3V7+9Q9gBiFnJalBYCPkO1uwsprqbIB3jvhFj8pSA5M+CTriImcD1DTzj0sFy6UQTRu0jaOILcGAyUNl2vkZNDCkirBSfqcV8EmSl0LEhraXH7421Oi+b0AvdXYzManzmtW+W9jmrF2gpm9m/g/yKrGSVp/0ZPDiuIv6W5Uq71eChyBcp/AG8VJGtxGq8T3xd0vUMPaRo/j6ji7C55qA60blyjwVzmQ/ECIDF4MJLcFDrWl/SdRk8Oe597RbJlRjwSvxtmIZ/cf6VaEZdjgdjlW3/aRMbK0cAiBeuPOhgPMRVFbsEcLEkFyutqut6h4/WJY1b+mhHv2dvpLBb+nQUYcm9J0uLAjyPa8kBE2Sl0nCyp0WYduwExA9hWoPUUuJQM3H9dUcehFULr3zMjqxmOTyKGvKckrUycYL0Uq2tFOvSp8f4WGXrDoadIYVgzVhGSAllq0M81OxuF2fsZFBM8WI13Q9Gb2DxBvD3NWfHUxyEJAYhFpAnV48Aae9OdxMCgeiZJHV/Ctg2OJ+5eOniQ3GG13gw1888jzvP73ggyKyk6SHJtSZsXLLMr6WqHHqJCG9ozLoDDEulpGklz4pWUBhhqdrkN7dVnr8eTEWV/Qij8UXjhmkFsKanebHMt0jQhmQbP9+5IJI3CB0EDzFrr3G7HzP5L3BoLA+w1RM+BPYlTovpt4N8R5FbyWASZJ7aaJdBLdLVDxx1Tqv3FxSUtl0hXsxzHpL3dq7bnDDPKoirB1SJl3/HYBUvqfVaFdKJqkM06cS89tFWtjGGp1R62V4i97A4eYHhK5cGwFRRrcPdY2OOOTYzv7Ui6Y2sqKr3g0FPScLBUKiStx+R2TVfj9K3xAjQxiTlrruSpyPLXkPTlId5Pef/NTGv9rGPzUybf4iky6roTuZX49x7ASlUKqBxC+02TavF0JLmTEIoRvRJB9I5hgNm3dLtDT90ZbdHE+oYkfNkvp4Ec1DA7P7DeeQXwfAIdA/w3gY6hPrN+v/8Opg/ThkIVtWsTqTtk4IeQbdN0n/cmSDkYj6FrVmCLCHK7hm536DFyqIeiYwKTQoW3a/Cqdo2wHvFn5wAvJNCRUte3JC1V471+vv8OotjqZN3GjYn0rDSoLPHuxN1iTDJDDzwXSe4PI8ntCrrdocdaeqrFyMT6JkPS8NBx6Hc0100uRTQ29N4MHbwN6CSEtKLUe9qfS6xvMiTNIulaoN+7Xv2F9huNNMr+oRrhNpH1pJyh/yeS3OVCGea+pNsd+us9rm8SwpLb7XhLyob/dpJmZ9Io+Ji8lEgPwIuJ9GxcWawndOJKXQFtbGJ9kxAKnjwErF+mHZ1AqKYWswHRYL6G18mPPYFJOUOP5dDBa0P0Jd3u0FM6D0i7nPwJkqYNs/J/0Vog1hakm02+mkgPpBtgzQ18qcrxfrn/5pF0GR4MVmS/hG7n94n0DCONk0p5f8Ws779xSOXtO5rqzNWBpBxRAjyTUlkoa7s1Hkk8RxuiUs3OPzSzdxPpAp+xTqC4xhRDsSne5W0wTxOnhnstnkmoC0nT46lAe9Pc9k6/kGofHeLHa7wZmh6lYkxE2VMAW+LpvH1Ft8/QU42QB0jyBZY0paTt8SIP59KGMw9pHCsXZVsdki4Jh+IybyZSN6rKsZsT6QZvT3pTCkVhn/wI4Fl8eyc78yqEIjMPl21HQcRIIxuKmA4derunQE263aH/nXT7qOOI7NAlTS9pLzzH9Sy8+1e7rEzjkfDt8kb9Uwon1SBi3hCLMJhUqUsAd5pZ1CX+sLR+Ir4ScDDeUjYzNCn6FqTgtcT6Yg8gVunHnPSudughH/S8ROouNbN3YgiWtKSkX+F7WCcCcxUovtHOTUUQ5fOpQ8ol/mUH/xJaav4tke5zYgiVNEzS2pKuwQeSezFp1cHM0DxatgEFkXowHnsgPjXpViY7hm7fQwcvO7kTcfeY3sdnLIURGixsAuxA3BKiS0SUXUns1pJl61yGyZe9D8BTmGLyMHBhkQIlfQ74LrAj6Qvk9BIx6pKXQVE9yhvCzD6U9D5xt3PWxAM5+4aud+hm9oakw4D/i6jmWDMrJL9a0ip4XvMmQIpmAimri/WDQ58EM7tD0hX43zMG44G9iqixHZYgNwC+hzeW6frvfwfwSNkGFETKla4B3iCuQ++7ffSe+EKb2Smh5naMsn/X0WYRjdB/fDM88jJFtbYBvVOm1EfvO/RaFeO2AxYnzuBpPzP7c6sXh0yJVfF6/5uS98WL5jl8q6lW/4RuYU5JHderok2WlTSLmaVMpS2VnnDoge2AeSi2Ycb9wJatzI4kLYA78c2AJQu0qRkWAIYn1PdhQl0DjEuoq2oXMTN7S9IGwF9rndMiZ5rZ8c1eFIrgfAnYHHfipVc47FXMbIKkx4Dly7alTZYAdkms8yniN7lZBP9e9gU949DN7INQ8/g8/EHWLpcD24SKYA0h6fPAt8Nrebw06fF4MY4ymlikrjWeovViJR8n1DWDpE9VG+CZ2WhJK+CR77Vm8o0yHviJmR3TzEWSlmXiIHIefEC6K7AHPkvPxOFRut+h32BmO5ZtRKY9esahgzt14DuS7gYOpbXlxdeBI83spEZODsFFm+JOfCW8yMkYvEnA2SH447AW7CiCFHv0g0npXMvQOQwvv1k1QtfMng11pI8Htqe179e/gT3M7JZGTpa0BH7vbQYsFA4/BPzQzH4XzunbUpiJiNHfOzW51kAP0FMOfQAzO1nShcD+eEODWRu4bAxexOU4MxsyhUPSrMDGuCNfnYnpf+/haWfHxkpxa5LUfal73aGDDxJrptyESnk/kHQScDhe97yRh+VjwC+Ac0PBnJpIWpiJK0GDsxiex9ttXlBEEF2mYUqtsV8QfZez3Yv0pEMHMLOxwH6SDgC+AqyDB4iNxB/Kr+G1uJ/CC8bcM9RDUNJMwEa4E/8ak392NwE7mVnMpgPNkh168czYyElm9jiweejKthbwVXzrZSQwDX7vvQT8E7jOzEYPJU/S/Ex04ktXvD0eHwwcbGbvN/5fyRREqq5rMckz9B6gZx36AMFJ/5UWAiMkzQhsiDvxNane4OQtYB8zO6sdOyORepZWRqGiFHXcB/NRMyeHGIyrw6spJM2DO/BNqb1HOxqP9UhV4CYzOb3g0FMP/jMR6HmH3iySPo03M9kSXy4dainqAWCUmT2XwrYWSJ1bOmVifZD+Ho5aOz4MIjfFi76szNADlovwVaE8Ky+XVP0EYtJO86dMh5AdekDScnjBl82BWRq45Dpgi8TdxZol9T5+qhatg0mZlgcR9kslDccHkVvhg8hGau8famZHFG1LpiWSVlmLRF+2G+01+tqhS5oOL0azA/DFJi79JQVV74pM6mCdMhx6ynt4PAUOkiTNDWyL11CYu8HLxgHbm9nFRdmRaZtecOjTSBoRYo8yXUpfOnRJC+FNKLak+b2jU8xsj+KtisIzifX1+pL7G6EhUFtIWh2//9aluRWGCcD3zOzydm3IFEovOHTwplDZoXcxfeXQJX0JL/AyitYCuG4A9izUqLi8gDeWSRXBWsYMPaXOlhtxhBKsGwM/pvUiJPtnZ96R9IpDXxTPush0KX3h0EMFreNor1j/A8Dm9XKEO4lQlvJpYLFEKsuYoaesof2PVi6StAlwNO31tz/TzI5r4/pMPFJnWsRi8bINyLRHTzt0SXMBR+ERw+186d4DNurwALhaPEg6h17GDD2lQ3+4mZMlrQicQPv9BR7CKw9mOpNGghi7gZStljMR6FmHLmk74CSKeeAfZWbPFiCnDO7CYwVSUEbHqZT5sw3N0EOb0mPwGurtzt4mALuZ2f/alJOJR6849LKaSGUKoucceqjodgbF9acejdfm7lbuSqgrdTMYSDeI+IAGZuihtvolwBcK0nuRmfVNt6gupVfKpi7Qb+1Ge40yKntFIzTGeJjinDl4eloZbUGL4mEg1Re0DIeeaob+h3qd9yTtBNxLcc78LWC/gmRl4tErDn0YsFrZRmRap2ccuqR1gT/gqRdF8cBAx6puJQTxXZdI3VShdnkSJE2N10VPwfV1bDkMOJ1il1/PMbOXCpSXiUOvLLlDduhdTU84dEnfwWtlF52e1SvFO65JqKuRKntFMXsiPeOpMSiSNEzSyXi73qK5KILMTPE01LCnS8gOvYvpeocuaRvc8RYdYf0xcGnBMsviFrzPewpSLruncuh3mtmYGu+dDeweQecjZvZgBLmZ4vlc2QYUyJKSVLYRmdboaocuaRU8AC7G/+OWXlnuNLNxwHmJ1KV06KkepGdWOyhpf7x0awx6ZXWoH5itbAMKZBjwvbKNyLRG1zp0SZ8HriBe7nOvVeQ6jTTtVFPOVlI8SP8LXFZ5MMRsHBVR72Q6Mx1LqpWiVHy3bAMyrdGVDl3SVPieecwH+n0RZSfHzJ7CS9fGZr4EOlLqOsXMJumBHnoBXEK878+rXVz3oB/pNYeusPqZ6TK60qEDBwDLRpT/MfBERPllcSheqCQmC0SWP5jYe33vUX25/QzgsxH1tlwzPlMKvebQAbYu24BM83SdQ5c0H7BvZDVPdXnueVXM7CHibyXMH1n+YGI79BPMbJJgQklbAKtH1vvvyPIzxZJyEJuKTUNaaKaL6DqHDpxI/LzPXp4hHYTPPGOR8uEWc/DwLPCzwQckTQscG1HnAL18//UUkqagNx36DHhXykwX0VUOPezrbJhAVc/OkMzsSbyFbCxmlxS9epukzwEzRVSxt5m9X3HsRxRbuKgWPXv/9SDzU05TohRsU7YBmeboKocO7JxIz2uJ9JSCmZ0G3BhRxUIRZQ8QM4biD2Z25eADoZ/59hF1DibX0u4eFi3bgIh8XdKXyzYi0zhd49AlzQxslEhdzzWtqcJ2wCuRZC8fSe5glokk93VghyrHvwl8PpLOSvrh/usVFi7bgMgcXrYBmcbpGoeO50amqpnc8w/UUDRnx0ji2+3/3QhLR5A5Adi6RsrYdhH01aLn778e4osJdFRu/aRkTUmrlqg/0wTd5NA3SKhreEJdpWFm1xCngtxXIsisJMag4VgzmyxXX9KU+Aw9FX1x//UIKe71q4BHEuipxQlhyynT4XTFHyncTMslVNnzMyRJX5Z0Hr6NUXQRE0mao2CZg4UvAYwsWOyf8AyAaiwNTFmwvqHo+fuvFwgptNHu88AE4BjglMh6huKLwK4l6s80SFc4dDzwJFXfa+jhB6qk9ST9A7gTWAtYD59lPFWwqpULljeYNQqWdw+wYWg1W40UMQGD6dWo6V4jxdbSlWb2CHAh6RosVeNISXOWqD/TAN3i0FdIrC9mFbBSkDSvpKvxNqBLAvcDy5nZHWb2ArAmXre8KNYqUFZM2Q8B3zSzt4c4J7VD77n7r0eJOWgd4CiAkEJ5dgJ9tZgBOEvSsBJtyNShWxx60cur9Vgisb6oSNoO+BcTc/hfAUaZ2YsD55jZ08A3KM6pbyzpMwXJ+gRJswJfL0jcY8BaldXgqpDvv0w1YsdVXBeqOw5wCvBBZJ1DsQ6wX4n6M3XoFoeeegl8qV4YiUoaJukofGQ/TTj8MfAdM/tP5flm9ii+/F5EAM5n8eX8ovk2xSxJ/wVYzcxebuDc5PdfYn2ZJpG0HDB3ZDU/HfxL+M7+X2Sd9ThSUoqViUwLdItDT72nOD1pa5IXTojMvhQ4sOKtC8zs1lrXmdlzwCrAbQWYsUUBMiopolfzucDXzazRPPzU91+MlLxMscTOujnbzO6tcvxnlLuXPgVwhaSOK3cb4oP6upd7tzj0MoLUYlYiS8E5wGZVjtcd4ZvZG/jy+wm0153tm5IK60Ql6au0F08xAdjHzLarbIlah9T331ySUvR6z7ROTIf+H2Dvam+Y2VgqZu4lMDtws6TUW1E1kbQBcAW92fmuYbrFob9Y/5TCiVWJLAVfAbaqcvwvFXtyNTGzj8xsH2B9Wq8o9xm8ZWtRVK42NMswYHtJh0tavInryrj/un1A2bNIWhL4QkQVO5nZW0O8fyrwaET9jSDgphDTUq4h0ii8i+QjePOuvqVbHPo/StC5SRfvo69S4/jNzQoKhVaWBq6sd24NdpC0SIvXDsQBfEvS7ykmGG4R4BDgEUn/lHRIA7Phfxagt1k2LUFnpjFiVVgEONfMbhrqhNDa+fvA/yLa0QhLAX+TVNr2pKSNgd/gxZh2GCL1tC/oFodexgN1AYqLpu4UrKWLzF4ws03wqN7RTV4+BV4YoykkzShpz6DveuKkwS2B16p+UtLBkqapcV4ZVbo2lzRjCXozQyBpKmDLSOJrLrVXEvbXU7TyrceCuFNPnVqMpO2By/AYlxPN7IHUNnQaXeHQzew1is2RbpSdStAZk7aKx4SZwxLAj4ExTVy6gaSGKk1Jml/SqfjD7RekCU6cHjgCd+w7SqosvfpwAhsqmQbvX5DpLDYDRkSQ+w6wQYhfaZQjKGf1spLZgTsk7ZuiRKyk6SRdBJyFTxieoNitva6lKxx6YLIa2wnYIGYJ0xJo5mFRFTP70MyOB+YD9qTxgdbJkjap9aakWSWdjOeG7wJM166tLTASOAN4QNKCAwfNbDTl9CiPubSbaZKwBbdXBNHjgS3N7MFmLgpL75sCYyPY1CxT4isGt0qK1j5Z0vr4AHsgRuhNvMpjmQ1sOoZucugXlKBzCuBHJeiNxeeKEmRm75vZyXhwzOZ4f/Wh9q8+BVwk6TuDD0qaRtJPgCeB3emMsqdfAO4NkbMDXFiCHUtIipHLn2mNjYhTI+BHZnZdKxea2RP4969T9o5XB/4l6VeSCnveSFpO0g3AtfgzB/z/vIWZPVaUnm6naxy6md0FPF6C6r16qH3gPEULDDP235jZukH+vsDtQLW0sKmAX0u6RdISknbA98h/ipeW7CQ+C1wt6ciwjHgRPpNKzRmdEEncJLViEbqdWs172uHUMDBuGTO7BdinIHuKYArgB/gW1jmSagXpDomkqSRtJOmPwH3AuhWn/NjMbmzT1p6i25qQnAMcl1jnp4ALJS3d5P5WJ7IGcHEs4Wb2X+DnwM8lTY8HFX4NTwFckolOe03KCXRslmH4Q3wZYGPgJiZ/qMRmJHAmMCqx3nYobGbWKYTtoqIL/pwP7FGEIDM7SdK8RckriGmBbYFtJRne0fAu4G7gWTN7d/DJkmbAnxPL4pk661B76+08M/tFLMO7lW5z6L/E9xVTVymaB8/9jBXdmor1JA1PkdoRmp1cHV4D+49r41XaUj3wP8K7yj0FvITnk78GzAjMOehVrx3rusCv8TrWa5K2lSrAhpJ2MLOzEuttlZXw70tPIGlqfKBaJCcDe5lZO4WbJsHM9gwBnZ3Y6lThtf0nB6RxeNW74XigYaPbbZeQ40uq0lUO3czGSdoNnymlZgtJT5tZjGW3VMwMbI071WSEanGH4F/C2PfcWOAq/B65pU4XNeCTwcZK+Cx8FNW3JjbCBwMnAvsXZm3j/FLSmFb3WhOzjqSZQ3ZKL3AgMG+B8g43s8MKlPcJZrZb2CLaJYb8gvkMzTc+Og34YZEDoV6ia/bQBzCz3wO/LUn9TySdHqOLWEIODzOO6ISAt4PxffJdiOvMxwAHAPOY2fZmdmUjzhzAzCaY2V/NbC8zmxf4KlCtjvYO+GzimYJsboapgCtD3EGnMyNwZNlGFEHIdvhxQeImAHvGcuaD2JUWaj90AT8zs12yM69N1zn0wE54O9CydD/YaKBHmP3NFdekppiLyB2bQjDLrnjk+hF4nncs3sUDguY1s2MadeJDYWa3ASvi1bgq0/J+jMchtK2nBaYAzpR0fdgvrUsoljNzVKuqs6Okrm4yI2kKPBiyiAH868D67QbANUIYoB6ANzIqs91qUYwH9jWzdks/9zzdWtoUSXPjARZzlmjGHXje8s1m9urgN8KDdB3cAaxYgm312NvMCq17HGb+O+GR7ikaN9yKl3t8OpaC8Hc8Ho/aHeBtfBZ0NuWl2f0PX6k6H7ijMg83pAyNwpeLyxpQPgt8C5gF+HNCvWeY2c7tCpF0NL7q0y73Ad+OeZ/WQtKX8C2ojmmk0iTPA98Ng+xMHbrWoQNI+gKeIlV2icwJ+LLyi8A4POhrIXyZ9Ld4QNZupVlXmyOBQ9tdwpI0Le7w9iFNt6MP8ICi0xPoAiCUoT2BiataN+ENIc6l/O/ROLxa1hh8S2AOvCTnePxvvCZQVg/rt4CjSbsE3LZDl/Q14A+0v4p5JrC7mY1rU07LhLTHU+m+/gBX4wP2XonFiE7ZD6K2kbQwPgJdrGxbKngNnwVfIOkwOrc04Q24c3yy2QvDkuqOePR/qjzy/wIbmdnfE+n7BEkb4svt04ZD38eXUi/C89Y7iUeA7c3sHkl/xgt+lMV40m7vteXQQ6/vu2lvq+JlYA8zu6wNGYUiaXPgFMrZgmmG9/BnZ7IBe6/QrXvon2Bmj+NL2leVbUtgAp5WsbiZlVHdrlm+BTwq6TRJXxmqw1wIcltF0jGSHgMexGfmqZz53cAKZThzADO7Bk+9+zAcOhEPnluB8ttZDvAePnhc1szuKduYQNc8ZySNwAe57Ti9i4DFOsmZAwR7FsdroJfdqa0aH+PbWAtlZ94aXT9DHyA4ol3w7llljUDvAPapdDgdPkOv5CXgIXz74A3cWc+E5/4vhi/plsE1wOZlLl0OIGlnPH0GvMvT3pKmA47CBzhl7KuPxx3JT0KBn08oeYb+Kr4V0Ez/+XZpaYYeYkBupPXP6hngByETp6MJK5tHApvQGX7gavzezWVc26AT/pCFEkbYBwM/JF0BkFuAY83sTzVsOogeSeMpiUuA75tZx8wqJJ2HL7m/Ccw9EF0fHpQ/B1LVYB+HbwP8PKxWTYakPxC3FfCbeAzJwOtJfE9/tJm9Lml1OjwoLrRFvQ6PN2iWd/H4iuMqq591OpKWxQM8NyN9yd5x+Gf+i1DaO9MmXVVYphHMbCzwI0m/AnbG93djVCYbA1yKlyCs18KwiFHnR3g/84EH5mg8nabQSPUO5HSgE3NPf4A36lgG2A44CT7ZAlo/pDXuhEeax3hQPorPyC8wsxfrnPsY7Tv0d5h43w38O+C0X25TdqkEZ34NzTvz/+HlqA8zs5cKNywBoYf4tpL2xtv1boc3J4rJ3Xizo8vC8zpTED03Q68k5JJ+E2+3txowWxvi/gX8EZ+R39LojFHSp4G/U78W9Md4qk+12c7TlSVbQ9GLJ5r5D3QZhaQfxSI07bkdH2gtaGaTNW8J9ak3wztircjEgLpm+Qi4B7//fmdm9zVhp/CWk/Va0n6Al8l9golOezTutBttk1tN/+p06Axd0iz4LPHLTcifwMQl4jLa6kZF0ufxWJG18f4P7cbIPI878XuA62utJGXap+cdeiXh4fZlPJBpDny/fabwGo7nGL8VXs/gM6F/Aw82MBMaSu9M+B7rGvhWwJNMOuN5HHjKzKp1KaslczrKKXCSgkvw/NNOm5lPgqTfA2sBm5jZlXXOHY43n/gSsBwwKxPvvZnwGd/AvfcGfm88ht+DD5jZO23YuTh+/y2HLxFPsjQeXs/F+Lw71aGHaPYb8RS/Rvgfvip3rJmVVdgqKaGMrPB+B4vjcTSz4E7+s0x09q/hGR+v4eWXX8Fjce40s+cTm9239J1D7zUkvUPrs75O5Wpg0xRNZNpF0vL46stvzGzzsu3pRDrRoUv6Dh7Y2Ei64Xt4vYHjzezZAuzLZKLQc3vofci9lJtjXDS34NHsHe/MAczsXknX4PXfMx1OKIL0S7ytZz2ewGM4zs97vZluoGvyQzM1ubFsAwrkDmCUmX1Y98zO4iJgNklLlG1IpjaSlgHuZ2hn/hFe02JNYBEz+0V25pluIc/Qu5/fAceVbUQB3Ad8y8zeK9uQFrgFT8H5Gl6hLdNBhKDUvfBGQbUardyPR15famavpLItkymS7NC7HDN7VNLTwHxl29IGjwDrmNlbZRvSCmb2jqTb8GX3X5ZsTmYQktbBUzsXqfL2U3ivhYv7Jcgt09tkh94bXAfsUbYRLTIa+EZlt7ou5HfAT8o2IuOECPbjgQ0q3noGuAIPYmw49S+T6QZylHsPIGkePIAnVWW8ongWWNXMnivbkHaRtBTwADBltwT0paKEKPdn8WJSA8vrj+GZE1eZ2f0J7chkkpJn6D2AmT0r6Wy8ln238CLw9V5w5oEX8CDTmfFOW5nymAcfXA048U5pnJPJRCU79N7haDx6d6qyDWmAV4E1q7VsDcVXvgjMC4wERuAO8gXg3x3cvOFVPEJ6NrJDL5tzzGz7so3IZFKTHXqPYGb/lXQaHs3bybwBrFUZhBTKqH4fb2oyS62LJT0JXAucZmZPRbSzKcxsgqQxtFdaOFMMHdPEJ5NJSc5D7y0OpnP6cldjLLB2aAgBeElSSdfhNdG3YQhnHlgA2Bvv4f4LSWW1yq3Gi2SHnslkSiI79B4itG7cGK8F3mm8CKxmZvcMHJC0Pb7X2Uqr0SmBPYEHQ8GQTuB9umPLI5PJ9CDZofcYofvTdmXbUYEBK5vZPwcOSDoROIv2I/PnBu6QVJmeVAbT07vNcjKZTIeTHXoPYmZXAEeWbUfgDmAlM7OBA5IOoti9/mmBSyV9sUCZrTAdnbk6kslk+oDs0HsUMzsEX5KerEd3Qk4D1jCzlwYOSBqFl+AsmqmBqyTNHkF2o8yEB/1lMplMcrJD72HM7GRgU7z9Y0reBbY3s10G93cP/dtPI15Bo7mBn0aSPSSSRuA56B0TeZ/JZPqL7NB7HDO7Cq8x/kwilb8HljCzc6q8tw8Qewa9jaRqdbtjsyDwmpm9XoLuTCaTyQ69HzCzvwOL4rXG34mkZgywtZmtY2bPVL4paWrgR5F0D2Y4sF8CPZUshpffzWQymVLIDr1PMLMPzOxoYCHgPIrbWzdgV2A+M7twiPPWxqPAU/AtSanv7a8AdyXWmclkMp+QHXqfYWYvmtm2wJx47fdbab6y1pvAlcAWwEJmdqqZvV/nmvWbNrZ1ZsEdbEpWBf6SWGcmk8l8Qi792qeEyPPTgNMkzQJ8C1gK7xs9Ep9Nfxp4BXgJr0/+LD4AuMvMmh0ErFCQ6c3o+2sKRZLmwCvY3ZFCXyaTyVQjO/QMoRf5+ZHVzBFZfiUjE+raFPhLDojLZDJlkpfcM9GRNBUwY2K1KQcQmwOXJtSXyWQyk5EdeiYFZdxnH6dQElLklsFjCjKZTKY0skPPRMfM3gPGJVb7Uv1TCuEQ4LK83J7JZMom76FnUmF4LnwqXoytQNKSwLeBpWPrymQymXrkGXomFX9PrO/OBDoOB24ys0cS6MpkMpkhyQ49k4o/JtT1MnBvTAWhs9t6wAEx9WQymUyjZIeeScXVeNOWFFxvZrG7zB0JnJ5n55lMplPIDj2TBDN7FxiqNGxR/A84JqYCSTsDSwKHxtSTyWQyzZAdeiYlRxM/2v08M3sylnBJXwKOAzbNke2ZTKaTyA49kwwzex5P84rF08CBsYRLmg34LbCvmeVGLJlMpqPIDj2Tmp8DN0eQ+y4wKpSxLRxJw4HLgD+a2ekxdGQymUw7ZIeeSYqZTQC2pvjCLzuY2cMFywRA0jDgZGAG4AcxdPQ4+TmTySQgf9EyyTGzMcCWwAcFiTzRzKLUUpf0GeDXwBrARmZWlM39xMxlG5DJ9APZoWdKwcz+BKyN91Zvh9uAfds2qAqSZsbz50cCK5nZczH09AHzlG1AJtMPZIeeKQ0zux1YndaX3ycAu5hZ4Y1YJC2AV5t7FvhGjmhvi6+WbUAm0w9kh54pFTN7CFgJeLSFy281s8cKNglJ6+HO/HIz28rMPixaR78gaTHgG2Xbkcn0A9mhZ0rHzAxvQXo40IzzvK9IOyTNLulS4FxgdzM7uEj5fcpJ5CZQmUwSskPPdARm9qGZHYZ3LrujwcumLUK3pBGSDgcex/uoL2ZmlxUhu5+RtDmwZtl2ZDL9QnbomY4iLKGvhkfB313n9C+1o0vSIpKOw1u7rgCsFZbYX2lHbgYkbQNcUJL6N0rSm8mUyrCyDchkhkLS8sBueN/xz1Q55Qgza6imesgn/wI+a9wQX+a/CjjVzOoNHjINIGlKvMZ9tIp9DTDKzK4pUX8mUwrZoWe6glB2dV189r4aMO+gt/+FV3F7AngFz2+fDvgsMAuwSHgtA0wF/Am4CQ96y7O5ApC0KLAD8F38My+LPwNrhAJGmUxfkR16piuRNA+eDrUQMCvuRGYNr2mAt4G3gNdwR/8Y8A/gPjP7Xxk29zKSRgMLlGjC68BvgB+Hzn6ZTN+RHXomk2kbSbMCw0tSP97MXi5JdybTMWSHnslkMplMD5AdeiaTyWQyPUB26JlMJpPJ9ADZoWcymUwm0wNkh57JZDKZTA+QHXomk8lkMj1AduiZTCaTyfQA2aE3gKThgOqc9jHwejOVxyRNB4ysc9p4vEDKq+1Wv5I0NfB1YFlgdmBKYAwwGrjJzMa0IHOeIKcWE4C3mskTbvBzqcabQ+kJ1eY+W0fGR8AbTf4dRes52JPZHHK6Zwy/vmpmYxu0YyReIQ/gJTN7u0WbMplMF5LbGjbGbHi1sbpIehw4DTjFzD6uc/r6wCUN2vCWpNuAE83s9gavGbBpOuAAYE+8ilo1xku6Cq+09UwT4m8GFm7AhpeBS4Ejzey1Oqc387kM5kxgpyHePxLYsRFBkl4EbgCOCe1dh+LvwMwNWTg55wLbVRxbCO84Nwy4W9JX6g3mwiDgEWAmvGraYni1vEwm0yfkbmvFszDeA/p6SZ8uUO4MuKP7s6R9G71I0ly4wzmQic78KdwRXwc8iK8CfArYBPiHpFULtHuA2YA9gHslzR1BftGMxGuT/0PSV1MqNrO/4YMT8I5ylQ6/Gj/DnTnAfq2stmQyme4mz9Cb53jguIpjw/Al7GVxx7kQsA7wE+CwBuVuBPy1xnsjgDWAo/Gl2GMk3Wpm9w8lUNL0wG3A/OHQn4B9zOzBivNGAgcDOwPTAzeFWeHDDdoOcCfewaySGfHPY098uX8+4CJg9QblbgPc0+C5DS1NB2arcfxTuDPfAtgb77l+iaQFzOy9Gtd8merfpZ2B3cPPX8W3NyqptbS/P7AeMAdwtKQray29S1oB/5wAbjOzs2vIzGQyPUx26M3zXo1+2S8D/5R0E94EZHZgV0lHmNn4BuS+MUQf7leAJyS9AfwaH0B8DxjSoQO/ZKIzvwDYtpotZvYisIukB/CZ4TTABZKWN7OPGrAd4KMa9r8CjJZ0I3AL7tRXk7RUgwOGZ0OP9EKp0/N8DPCQpBnwJfyRwNp4q9VqskZXOy7p1UG/PmVm/2nCvjck7QlcjjecORLYtYqOYcD/4QORcfggIpPJ9CF5yb1gQoDT9eHXmakfTNcMl+NBW1Bn31rSwsDW4deHgB3qDSzCzO6M8OtS+Cy1EMIe8AWDDq1QlOyIXDro57pxAkVjZr8Frg2/7ixp6Sqnbc/Ez/IoM3s8iXGZTKbjyA49DoOjlmsFoTVNCLJ7K/xab9b/QyZmMezbxEz7IOD98PMuzVlYl8FLzlMXLDsGrw/6uZFVlhjshge3Dcdn4p8gaSZ8Gwa8J/wxaU3LZDKdRHbocVh00M8vFCU07HUPRFPXi7z+evj3OTP7Q6M6QgT6NeHX5YPTKIrFBv1c2OcSkSUH/Vzv845CWKY/KPy6sqTvDXr7p3gf+AnATk0M2jKZTA+SHXrBSFoZj0YHuN/MXh3q/Cbkfgo4YdChi4c4d3omDipqBdoNxcA1wyhoaVzSLMCPw6/j8GC9jkXSjMAh4dfX8RS2sjiFiYGBx0qaXtIyTEzBOyNExmcymT4mB8U1z0KS1q84NgwPnFoB2IqJRUaOaELuKElLVDk+PMheh4kzxqPN7O4hZA2O4H6mCRsGeHbQz7M3eM3MVT4X8BWFhfEUsIHZ/qlNDHT+KKmRgjo3m9m6DcpE0m413poSDyQcBXwOj1nY2szer3F+dMxsvKQd8SDIz+H31fL4vfECsF9ZtmUymc7h/wEAAP//7d17sG51XcfxNxxEiYtk3riI9g3EC0SYRjRiDl4IccDgnCNaIENjWDCiYtOEothFqbSEGLBywklrhnsySDFCBIMTFy1ChTD8eolU6Kh1ksOd0x+/9fA8e7Ofvddaz/Psvc/vvF8ze55n7ee31vrtzWJ/zvqt38VA7+7Y5msxm4HTM/OKDscdFzDzfSwz37dEmZ1H3v+oQx0GNo6832lsqbn2Y9iBazGfpUxy01bbVqSuM7Wd06LM48C6zFzJu3MAMvP2iPgYJbzfNfLRqZm5ccxukrYiBnp3DwALjUd+jNI0eytw3hJ30Au5k7lBOrAt5S55r2b7tIjYlJkfWKDswP+OvN+lYz1gOO0oY+q0kEfnnXdgM6VT11coQ+4u7DiF7QcoHb6W8r0Ox4TxY9ufAjyf0rKwLXBhRBydmVd1PP4sfIgy+c9gKOIVmXnJCtZH0ipioHf3x5n5wRkc9+TMvG7chxFxEGUc9O7A6RHxycz89pji9zKc/a3PsLkXjLxv23ntC5n56h7nWsqNi/1e+srMnx/3WdNf4XjgL4GnUmb+W/FAz8wHIuLjDHu7f2Ql6yNpdbFT3BYiM29m+Kx0DXDQImU3AYNJWw5pAqqLQ5rXR2k/S1s1MvPxzPwU8KnmW/s0nfpWg4fGvJe0lTPQtyy3jLzfY4myf9+87gYc1fYEEfFchr30b8zMPs/ga3HryPs9V6wWktSCgb5lGZ3oZKnOaucznFXurIhoO8HNn1CamaFdx7Gajc6d3rZzoCStCAN9y/LgyPudx5YCMvMeSjhDWRzlooh42mL7RMSZwFuazesYTjCztRpt0u7TuVCSlo2d4rYs91N6jW9DuzvGM4BXUVYDOwL4UkS8H/hcZj4MTyzucRClN/nhzX7fo4y97tIbfVYObibKaeMHmdlnIp1xRtcT9w5d0qpmoG9BMnNzRNzH3GFsi5V/JCIOo9xpH0qZevUy4P6I+DbwMPA8hhO+AHwDOKzLymAz9gcdyt5MWT98WkaHwi35+5aklWST+5bnjub1DRFx4lKFM/P/gNdRZmq7u/n2jpSpYQ9gGOYbKHOD7z9uOdCt0NcZPuZ4f0QcsJKVkaTFbLN0EdUkIl4CvJwyPex2lCC/A7ip5brtkqRVyECXJKkCBrokSRUw0CVJqoCBLklSBQx0SZIqYKBLklQBA72FiFjD3GVIN2bmvS33fQZlbe2BezLzgR512BPYodn8z8x8cLHyY47xfGD7tseIiO0pa4MDfCcz7+9xzonrvcAxt6FMIPNqynKyOwLfp6wwd3Vm/nePY47+brrIzHxszDGX7bpZ4FxtPZyZ31rkuDtRFvgB2JSZ/7XUASNiN8rMeg+NW+I3InYFntWjvgNjf+/S1sqZ4tp5NvC1ke2vAPu33PfPgbUj24dS5klvLSJ2aM759OZb76as0d3V1cC+zfvzgd9covy+wO3N+zcDF3U52RTrPXrM9cAfMnfN9lEPRcRfA6dn5oYOhx793XSxO/DdMZ8t53Uz/1xt3QW8aJHPjwT+pnm/KSJempnfXOKYfwYcA3wV2G9MmeOYbPGfvYDVMpuhtCo4U1w/+zUTtCwqInYE3jCF8x3DMBQBfmUKxzwpIsauqT4lU6t3RGwTEecCFzIM828B/wBcTpn29SHKSnFvB26PiJ/pe74ZWe7rZtp+jBLWklYh79C7GyyOsh44c4myR1L+CA726ev45vV+SvPyyyPixZl55wTH3BY4PyJeMcOmy2nW+4+Ak5v3dwCnZOacO9amGfcUykIzuwGfj4gDm5Xn2roVeFuH8ve1LLec1815wLktyz60dJE53hgRazPzko77zfcZ4Joxn30ZWANcQvlvuZBxrSLSVstA7+46SvPnOpb+wzxoMr0WeG2fk0XE84DXNJunUf5Ybwv8KvC+PscE7qUs8HIgcCrDZVanZpr1johDm2NACdzXZubG+eUy83+A34+I2ygL0jwT+ChwbIfTbZrwH0rjLOd1s2FGP8Pguvl4RFzdrBPQS2b+kLnrzT8h4omuABtn9HNIVbLJvbsrgEeAl0TEuOeDg2bTwXKkl09wvrdR/jt9H/gr4Ibm+29tOof1cS1wZfP+Q034Tts06/1hyp3qJuAtC4X5qMy8Erig2VwbEc/seL5ZWO7rZhbeCzwO7EFZyEfSKmKgd7eRYVPh+kXKHUXp3X03pQmxr+Oa1wsz8xHg4mb7BcAhExz3FEpT+E7A2RMcZ5yp1Dsifo6yXjvABZn59Za7ngtcSrlT373t+WZoua+bWbiZ0tICcHJEvGwlKyNpLgO9u+0oQQFzeyHPN/jsEno+2oiIVwIvbDY/3bxeCgyeeR/3pJ1aaoYqDZ5P/nJEHNX3WPNNud6vH3n/t213ysx/y8y1zdftS+8xc8t23czY6cA9lGfcn4gI/4ZIq4T/M3a3htIU+gjw4oj46fkFmrG7v9RsXtTs08cJzet/ZOZNAM045uub76+NiKf2PDaUO/MvNu/PaZp7p+GE5nUa9f7Z5vUR4EtTqt9KWM7rZmaa5+bvbDZfwbCjoqQVthrvAFa7bTLzBxFxDeVZ53qGY7UHnmg2zcx/jYjXdT1JM4Z7XbP5mXkfX0zpYLUrpUf0xfSQmY9FxEnALZRxvWcCv9XnWAMzqPezm9cNmblgj+wmHJ++0Gcj+7btXPWLEfFoy7KvHPyDpYVluW4aZ0REm46HD2bmTl0PnpmXR8RlwNGUToiXZuZ3OtdS0lR5h97fYNjOQs2na+eV6WMtsAtl6NL8YLyMYfP1RGPSM/NfGD5Df1dEHDDJ8Zh+vQetBovNUncOpdPduK/fa3mugTUtv/p0Spz1dQOlXm3qP8k/6N9J6RewC/Cnk1RW0nQY6P0Nmk/3HZ3AJCJ2Zm6zaV+DMdxfyMwc/SAz7wP+qdk8PCJGpwjt4wzgm5Q/8OdP0Hsepl/vTc3rYneSj4356uOrlAlx2nzd1eP4s75uoEy+06b+b+57gmYK2NObzfURcfhi5SXNnk3uPWXmDyPi85QZvdYBtzUfvQl4Gk2zaZ9jR8RelKZpgP0j4u4Fig3CcHvKH+bzFijTSmZuioiTgc8BBwO/Tpl6tJMZ1XvQlPuMiNguM5/UHJ6Zr5n/vaY+twFdWxw2ZOZlHfdpbZbXzYi7ZvkzjDiP0tJyMHBuROzXZ50CSdPhHfpkBr2W141875jmdZJm08EYbijPhn9qga9dR8pPPBVsZl5FubMD+EhEPKfHYWZR7zua1+2Bl3asT5+fYTnM6rpZVpm5GTiJ0uIQlJYeSSvEO/TJXE5Z5GSfiDiQMnb4sOazSZpNB8O6buHJz6FHvR54I/ALEbF3Zi50R9zFqc0xf5wye9xZHfefRb3/kWFQHElZUW1JEbEP8Nw2ZVfArK6bZZeZX46IjwK/A7w3Ihb77y5phgz0CTTNp9dQmk/XA3cyeXP7IcA+zebZmTl27HVEfJESjFCmVD2zzzkHMvPeiPht4C+At1KmWW1lhvW+HkjKHeBJEXH2UjPFNX6jRZkVMYvrZoX9LqW1YW/KP1S6rHInaUpscp/coIl0HdNpNj2hef0RZZazsTLznykrjsF0VmAD+CTD8eJdeoef0LxOtd5Ns+67m809gAsi4imL7RMRb6K0Nqxm075uVkyzxv07ms1XMXcyIEnLxDv0yf0d8AnK8+HBqhK9mk2bMdyDoUuXZ+amxco3LgXeA+wdEQc3YdlbZm6OiHdQOmu1GqM863pn5hUR8WlKk/7RwPVNS8KNTeAP6rEnJcjfQxm69Q3gJ9v8DCN+IiKO7FD+pqb3fldTu24W8MKOP8OVmfn4JCfMzGubdeiPp+V1I2m6DPQJjfRaPoISIpM0m66jjOuFxZ9Bj7qIEmBQmq8nCnSAzPz3iDgL+GDLXZaj3idSOl+dSOlVfQNwb0R8rfn+7pQm/zWUBUROpgxd69pbfz/gsx3KHwFc1fEc075u5juWbivM7QA8OIXznkZ5jLAaFsORtjo2uU/HpSPvJ2k2HYzh/i5lRbQlZebNlDtRKOOBF22O7uDDlGe7bcy83pn5aGb+GvD2kf2eQ1no5VDgRZTr+QbgoMw8n7Jk6Wo2retmVcjMDZQV2SStgEkmEJFWTLPS18uAZwGPUsarX5+Z96xoxSRphRjokiRVwECXJKkCBrokSRUw0CVJqoCBLklSBQx0SZIqYKBLklQBA12SpAoY6JIkVcBAlySpAga6JEkVMNAlSaqAgS5JUgUMdEmSKmCgS5JUAQNdkqQKGOiSJFXAQJckqQIGuiRJFTDQJUmqgIEuSVIFDHRJkipgoEuSVAEDXZKkChjokiRVwECXJKkCBrokSRUw0CVJqoCBLklSBQx0SZIqYKBLklQBA12SpAoY6JIkVcBAlySpAga6JEkVMNAlSaqAgS5JUgUMdEmSKmCgS5JUAQNdkqQKGOiSJFXAQJckqQIGuiRJFTDQJUmqgIEuSVIFDHRJkipgoEuSVAEDXZKkChjokiRVwECXJKkCBrokSRUw0CVJqoCBLklSBQx0SZIqYKBLklQBA12SpAoY6JIkVcBAlySpAga6JEkVMNAlSaqAgS5JUgUMdEmSKmCgS5JUAQNdkqQKGOiSJFXAQJckqQIGuiRJFTDQJUmqgIEuSVIFDHRJkipgoEuSVAEDXZKkChjokiRVwECXJKkCBrokSRUw0CVJqoCBLklSBQx0SZIqYKBLklQBA12SpAoY6JIkVcBAlySpAga6JEkVMNAlSaqAgS5JUgUMdEmSKmCgS5JUAQNdkqQKGOiSJFXAQJckqQIGuiRJFTDQJUmqgIEuSVIFDHRJkipgoEuSVAEDXZKkChjokiRVwECXJKkCBrokSRUw0CVJqoCBLklSBQx0SZIqYKBLklQBA12SpAoY6JIkVcBAlySpAga6JEkVMNAlSaqAgS5JUgUMdEmSKmCgS5JUAQNdkqQKGOiSJFXAQJckqQIGuiRJFTDQJUmqgIEuSVIFDHRJkipgoEuSVAEDXZKkChjokiRVwECXJKkCBrokSRUw0CVJqoCBLklSBQx0SZIqYKBLklQBA12SpAoY6JIkVeD/Abyipvv1ElgsAAAAAElFTkSuQmCC";
+
+const WEEKLY_RATE = 850;
+const PARTIAL_DAY_RATE = 200;
+const CLEANING_UNDER_2WK = 150;
+const CLEANING_2WK_PLUS = 220;
+const PET_FEE = 150;
+const PET_CLEAN_ADDON = 100;
+
+const INITIAL_PROPERTIES = [
+  { id: 1, name: "The Cedar Townhome", area: "Uptown Dallas", beds: 4, baths: 3, sqft: 2100,
+    amenities: ["Full kitchen", "In-unit laundry", "Fenced yard", "Parking x2"], status: "available" },
+  { id: 2, name: "The Magnolia Townhome", area: "Bishop Arts District", beds: 4, baths: 3.5, sqft: 2250,
+    amenities: ["Full kitchen", "In-unit laundry", "Rooftop patio", "Smart locks"], status: "available" },
+  { id: 3, name: "The Sycamore Townhome", area: "Lake Highlands", beds: 4, baths: 3, sqft: 1980,
+    amenities: ["Full kitchen", "In-unit laundry", "2-car garage", "Home office"], status: "occupied" },
+  { id: 4, name: "The Preston Townhome", area: "Preston Hollow", beds: 4, baths: 3.5, sqft: 2300,
+    amenities: ["Full kitchen", "In-unit laundry", "Private patio", "Pet friendly"], status: "available" },
+];
+
+const STEPS = ["Browse", "Dates", "Details", "Payment", "Lease", "ID", "Confirmed"];
+
+function daysBetween(a, b) {
+  if (!a || !b) return 0;
+  const d1 = new Date(a), d2 = new Date(b);
+  return Math.max(0, Math.round((d2 - d1) / (1000*60*60*24)));
+}
+function fullWeeks(nights) { return Math.floor(nights / 7); }
+function extraDays(nights) { return nights % 7; }
+
+// core pricing function used at booking AND at extension time
+function priceStay(nights, hasPet) {
+  const weeks = fullWeeks(nights);
+  const days = extraDays(nights);
+  const weekCost = weeks * WEEKLY_RATE;
+  const dayCost = days * PARTIAL_DAY_RATE;
+  const cleaningFee = nights >= 14 ? CLEANING_2WK_PLUS : CLEANING_UNDER_2WK;
+  const petFee = hasPet ? PET_FEE : 0;
+  const petCleanAddon = hasPet ? PET_CLEAN_ADDON : 0;
+  const total = weekCost + dayCost + cleaningFee + petFee + petCleanAddon;
+  return { weeks, days, weekCost, dayCost, cleaningFee, petFee, petCleanAddon, total };
+}
+
+function money(n) { return "$" + n.toLocaleString(); }
+
+function GuestFlow() {
+  const [step, setStep] = useState(0);
+  const [propertyId, setPropertyId] = useState(null);
+  const [properties, setProperties] = useState(INITIAL_PROPERTIES);
+
+  React.useEffect(() => {
+    fetch('/.netlify/functions/properties')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data) && data.length) setProperties(data); })
+      .catch(() => {});
+  }, []);
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guest, setGuest] = useState({ name: "", email: "", phone: "", guests: "2" });
+  const [hasPet, setHasPet] = useState(false);
+  const [signed, setSigned] = useState(false);
+  const [idUploaded, setIdUploaded] = useState(false);
+  const [pastCleaningTriggered, setPastCleaningTriggered] = useState(false);
+
+  // extend-stay modal state
+  const [showExtend, setShowExtend] = useState(false);
+  const [extendChoice, setExtendChoice] = useState(null);
+  const [extendPaid, setExtendPaid] = useState(false);
+  const [currentNights, setCurrentNights] = useState(0);
+
+  const property = properties.find(p => p.id === propertyId);
+  const nights = daysBetween(checkIn, checkOut);
+  const pricing = priceStay(nights, hasPet);
+
+  function goto(n) { setStep(n); window.scrollTo({top:0, behavior:"smooth"}); }
+
+  function confirmBooking() {
+    setCurrentNights(nights);
+    fetch('/.netlify/functions/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        propertyId, propertyName: property.name,
+        guestName: guest.name, guestEmail: guest.email, guestPhone: guest.phone,
+        checkIn, checkOut, nights, hasPet, total: pricing.total
+      })
+    }).catch(() => {});
+    goto(6);
+  }
+
+  // extension pricing: 1-6 days = flat partial rate, 7+ = full weeks at weekly rate
+  function extensionCost(addNights) {
+    const addWeeks = fullWeeks(addNights);
+    const addDays = extraDays(addNights);
+    const cost = addWeeks * WEEKLY_RATE + addDays * PARTIAL_DAY_RATE;
+    const newTotalNights = currentNights + addNights;
+    const crossesCleaningThreshold = currentNights < 14 && newTotalNights >= 14;
+    const cleaningTrigger = crossesCleaningThreshold ? CLEANING_2WK_PLUS : 0;
+    return { addWeeks, addDays, cost, cleaningTrigger, total: cost + cleaningTrigger, newTotalNights };
+  }
+
+  const extendOptions = [
+    { label: "Add 3 days", nights: 3 },
+    { label: "Add 1 week", nights: 7 },
+    { label: "Add 2 weeks", nights: 14 },
+  ];
+
+  return h('div', {className:"app"},
+    h('div', {className:"topnav"},
+      h('div', {className:"brand"},
+        h('img',{src:LOGO_SRC, alt:"Agape Property Management"}),
+        h('span', {style:{color:"var(--olive-dark)", fontFamily:"var(--serif)", fontSize:"17px", fontWeight:600, letterSpacing:"0.2px"}}, "Agape Property Management")
+      )
+    ),
+    step < 6 && h('div', {className:"stepper"},
+      STEPS.slice(0,7).map((s,i) => h('div', {
+        key:s, className: "step " + (i < step ? "done" : i === step ? "current" : "")
+      }, s))
+    ),
+    h('div', {className:"screen"},
+
+      step === 0 && h(React.Fragment, null,
+        h('h1', null, "Available townhomes"),
+        h('p', {className:"sub"}, "Fully furnished 4-bedroom townhomes. ", money(WEEKLY_RATE), "/week, any length of stay from 1 week to 6 months."),
+        h('div', {className:"propGrid"},
+          properties.map(p => h('div', {
+            key: p.id,
+            className: "propCard" + (propertyId === p.id ? " selected" : "") + (p.status !== "available" ? " disabled" : ""),
+            onClick: () => p.status === "available" && setPropertyId(p.id)
+          },
+            h('div', {className:"propPhoto"},
+              p.status === "occupied" && h('div',{className:"badge", style:{background:"var(--amber-bg)", color:"var(--amber)"}}, "Occupied"),
+              p.status === "available" && h('div',{className:"badge"}, "Available now"),
+              "Photo gallery — " + p.name
+            ),
+            h('div', {className:"propBody"},
+              h('div', {className:"propName"}, p.name),
+              h('div', {className:"propMeta"}, p.area + " · " + p.beds + " bed · " + p.baths + " bath · " + p.sqft + " sqft"),
+              h('div', {className:"propPrice"}, money(WEEKLY_RATE), h('span',null," / week")),
+              h('div', {className:"amenityRow"},
+                p.amenities.map(a => h('span',{key:a, className:"pill"}, a)),
+                h('span', {className:"pill touch"}, "The Agape Touch")
+              )
+            )
+          ))
+        ),
+        h('div', {className:"touchNote"},
+          h('span', null, "✦"),
+          h('div', null,
+            h('strong', null, "Every stay includes the Agape Touch. "),
+            "Curated organic cleaning products, a signature scent, and restocked essentials — the same white-glove standard across every Agape home."
+          )
+        ),
+        h('div', {className:"btnRow"},
+          h('button', {className:"btn btn-primary btn-block", disabled: !propertyId, onClick: () => goto(1)}, "Continue to dates")
+        )
+      ),
+
+      step === 1 && h(React.Fragment, null,
+        h('h1', null, "Choose your stay length"),
+        h('p', {className:"sub"}, property.name + " · " + property.area),
+        h('div', {className:"card"},
+          h('div', {className:"row2"},
+            h('div', null, h('label', null, "Check-in"), h('input', {type:"date", value:checkIn, onChange:e=>setCheckIn(e.target.value)})),
+            h('div', null, h('label', null, "Check-out"), h('input', {type:"date", value:checkOut, min:checkIn, onChange:e=>setCheckOut(e.target.value)}))
+          ),
+          h('div', {className:"toggleRow"},
+            h('div', {className:"txt"}, h('div',null,"Traveling with a pet?"), h('div',{className:"d"}, "$150 non-refundable pet fee + $100 cleaning add-on")),
+            h('div', {className:"switch" + (hasPet ? " on" : ""), onClick:()=>setHasPet(!hasPet)}, h('div',{className:"knob"}))
+          ),
+          nights > 0 && h('div', {style:{marginTop:16}},
+            pricing.weeks > 0 && h('div', {className:"summaryLine"}, h('span',{className:"muted"},money(WEEKLY_RATE)+" × "+pricing.weeks+" week"+(pricing.weeks!==1?"s":"")), h('span',null,money(pricing.weekCost))),
+            pricing.days > 0 && h('div', {className:"summaryLine"}, h('span',{className:"muted"},money(PARTIAL_DAY_RATE)+" × "+pricing.days+" extra day"+(pricing.days!==1?"s":"")), h('span',null,money(pricing.dayCost))),
+            h('div', {className:"summaryLine"}, h('span',{className:"muted"},"Cleaning + restock fee", h('span',{className:"tag"}, nights>=14?"2wk+":"under 2wk")), h('span',null,money(pricing.cleaningFee))),
+            hasPet && h('div', {className:"summaryLine"}, h('span',{className:"muted"},"Pet fee (non-refundable)"), h('span',null,money(pricing.petFee))),
+            hasPet && h('div', {className:"summaryLine"}, h('span',{className:"muted"},"Pet cleaning add-on"), h('span',null,money(pricing.petCleanAddon))),
+            h('div', {className:"summaryLine total"}, h('span',null,"Estimated total"), h('span',null,money(pricing.total)))
+          ),
+          nights === 0 && h('p', {className:"sub", style:{margin:"14px 0 0"}}, "Stays from 1 week up to 6 months. Pick your dates above.")
+        ),
+        h('div', {className:"btnRow"},
+          h('button', {className:"btn btn-secondary", onClick:()=>goto(0)}, "Back"),
+          h('button', {className:"btn btn-primary btn-block", disabled: nights < 7, onClick: () => goto(2)}, "Continue to your details")
+        )
+      ),
+
+      step === 2 && h(React.Fragment, null,
+        h('h1', null, "Your details"),
+        h('p', {className:"sub"}, "We'll use this to prepare your check-in instructions and lease."),
+        h('div', {className:"card"},
+          h('label', null, "Full name"),
+          h('input', {type:"text", placeholder:"Jordan Reyes", value:guest.name, onChange:e=>setGuest({...guest, name:e.target.value})}),
+          h('div', {className:"row2"},
+            h('div', null, h('label', null, "Email"), h('input', {type:"email", placeholder:"jordan@email.com", value:guest.email, onChange:e=>setGuest({...guest, email:e.target.value})})),
+            h('div', null, h('label', null, "Phone"), h('input', {type:"tel", placeholder:"(214) 555-0148", value:guest.phone, onChange:e=>setGuest({...guest, phone:e.target.value})}))
+          ),
+          h('label', null, "Number of occupants"),
+          h('select', {value:guest.guests, onChange:e=>setGuest({...guest, guests:e.target.value})},
+            [1,2,3,4,5,6].map(n => h('option',{key:n, value:n}, n + (n===1?" guest":" guests")))
+          )
+        ),
+        h('div', {className:"btnRow"},
+          h('button', {className:"btn btn-secondary", onClick:()=>goto(1)}, "Back"),
+          h('button', {className:"btn btn-primary btn-block", disabled: !guest.name || !guest.email || !guest.phone, onClick: () => goto(3)}, "Continue to payment")
+        )
+      ),
+
+      step === 3 && h(React.Fragment, null,
+        h('h1', null, "Payment"),
+        h('p', {className:"sub"}, "Secure your dates. Your card is charged once you confirm below."),
+        h('div', {className:"card"},
+          h('div', {className:"miniLabel"}, "Booking summary"),
+          h('div', {className:"summaryLine"}, h('span',null,property.name), h('span',null, checkIn + " → " + checkOut)),
+          pricing.weeks > 0 && h('div', {className:"summaryLine"}, h('span',{className:"muted"},money(WEEKLY_RATE)+" × "+pricing.weeks+" week"+(pricing.weeks!==1?"s":"")), h('span',null,money(pricing.weekCost))),
+          pricing.days > 0 && h('div', {className:"summaryLine"}, h('span',{className:"muted"},money(PARTIAL_DAY_RATE)+" × "+pricing.days+" extra day"+(pricing.days!==1?"s":"")), h('span',null,money(pricing.dayCost))),
+          h('div', {className:"summaryLine"}, h('span',{className:"muted"},"Cleaning + restock fee"), h('span',null,money(pricing.cleaningFee))),
+          hasPet && h('div', {className:"summaryLine"}, h('span',{className:"muted"},"Pet fee (non-refundable)"), h('span',null,money(pricing.petFee))),
+          hasPet && h('div', {className:"summaryLine"}, h('span',{className:"muted"},"Pet cleaning add-on"), h('span',null,money(pricing.petCleanAddon))),
+          h('div', {className:"summaryLine total"}, h('span',null,"Due now"), h('span',null,money(pricing.total)))
+        ),
+        h('div', {className:"card"},
+          h('div', {className:"miniLabel"}, "Card details"),
+          h('label', null, "Card number"),
+          h('input', {type:"text", placeholder:"4242 4242 4242 4242"}),
+          h('div', {className:"row2"},
+            h('div', null, h('label', null, "Expiry"), h('input', {type:"text", placeholder:"MM / YY"})),
+            h('div', null, h('label', null, "CVC"), h('input', {type:"text", placeholder:"123"}))
+          )
+        ),
+        h('div', {className:"btnRow"},
+          h('button', {className:"btn btn-secondary", onClick:()=>goto(2)}, "Back"),
+          h('button', {className:"btn btn-primary btn-block", onClick: () => goto(4)}, "Pay "+money(pricing.total)+" and continue")
+        )
+      ),
+
+      step === 4 && h(React.Fragment, null,
+        h('h1', null, "Sign your lease"),
+        h('p', {className:"sub"}, "Short-term furnished lease for the length of your stay."),
+        h('div', {className:"leaseBox"},
+          h('p', null, h('strong',null,"Furnished short-term lease agreement")),
+          h('p', null, "This agreement is between Agape Property Management (\"Landlord\") and " + (guest.name || "Guest") + " (\"Tenant\") for the property " + property.name + ", " + property.area + "."),
+          h('p', null, "Term: " + checkIn + " through " + checkOut + " (" + nights + " nights)."),
+          h('p', null, "Rent: " + money(WEEKLY_RATE) + " per full week; partial-week extensions billed at a flat " + money(PARTIAL_DAY_RATE) + " per day."),
+          h('p', null, "A mandatory cleaning and restock fee applies: " + money(CLEANING_UNDER_2WK) + " for stays under two weeks, or " + money(CLEANING_2WK_PLUS) + " for stays of two weeks or more, charged once."),
+          hasPet && h('p', null, "Pet fee: " + money(PET_FEE) + " (non-refundable), plus a " + money(PET_CLEAN_ADDON) + " pet cleaning add-on, both charged at booking."),
+          h('p', null, "Total due at booking: " + money(pricing.total) + "."),
+          h('p', null, "Tenant agrees to reasonable care of the furnished property and appliances, adherence to community guidelines, and reporting any maintenance issues promptly. Extensions require written approval and payment of the applicable rate prior to the current term's end."),
+          h('p', null, "This is a preview of lease terms for prototype purposes only.")
+        ),
+        h('label', null, "Sign below to accept"),
+        h('div', {className:"sigBox" + (signed ? " signed" : ""), onClick:()=>setSigned(true)},
+          signed ? (guest.name || "Signed") : "Click to sign"
+        ),
+        h('div', {className:"btnRow"},
+          h('button', {className:"btn btn-secondary", onClick:()=>goto(3)}, "Back"),
+          h('button', {className:"btn btn-primary btn-block", disabled: !signed, onClick: () => goto(5)}, "Continue to ID verification")
+        )
+      ),
+
+      step === 5 && h(React.Fragment, null,
+        h('h1', null, "Verify your identity"),
+        h('p', {className:"sub"}, "Upload a government-issued photo ID to complete your booking."),
+        h('div', {className:"uploadBox" + (idUploaded ? " filled" : ""), onClick:()=>setIdUploaded(true)},
+          idUploaded ? "✓ ID uploaded — drivers_license.jpg" : "Click to upload driver's license or passport"
+        ),
+        h('div', {className:"btnRow"},
+          h('button', {className:"btn btn-secondary", onClick:()=>goto(4)}, "Back"),
+          h('button', {className:"btn btn-primary btn-block", disabled: !idUploaded, onClick: confirmBooking}, "Complete booking")
+        )
+      ),
+
+      step === 6 && h(React.Fragment, null,
+        h('div', {className:"confirmHero"},
+          h('div', {className:"checkCircle"}, "✓"),
+          h('h1', null, "You're booked"),
+          h('p', {className:"sub"}, "A confirmation and check-in guide have been sent to " + guest.email)
+        ),
+        h('div', {className:"card"},
+          h('div', {className:"miniLabel"}, "Reservation"),
+          h('div', {className:"summaryLine"}, h('span',null,property.name), h('span',null, property.area)),
+          h('div', {className:"summaryLine"}, h('span',{className:"muted"},"Dates"), h('span',null, checkIn + " → " + checkOut)),
+          h('div', {className:"summaryLine"}, h('span',{className:"muted"},"Total paid"), h('span',null,money(pricing.total))),
+          h('div', {className:"summaryLine"}, h('span',{className:"muted"},"Lease"), h('span',null,"Signed")),
+          h('div', {className:"summaryLine"}, h('span',{className:"muted"},"ID verification"), h('span',null,"Complete"))
+        ),
+        h('div', {className:"card"},
+          h('div', {className:"miniLabel"}, "Check-in instructions"),
+          h('ul', {className:"checklist"},
+            h('li',null, h('span',{className:"num"},"1"), "Arrive after 4:00 PM on " + (checkIn || "your check-in date")),
+            h('li',null, h('span',{className:"num"},"2"), "Access the smart lock using code sent via text 24 hours before arrival"),
+            h('li',null, h('span',{className:"num"},"3"), "Parking available in the driveway, 2-vehicle limit"),
+            h('li',null, h('span',{className:"num"},"4"), "Wifi network and password are posted on the kitchen counter"),
+            h('li',null, h('span',{className:"num"},"5"), "Report any issues directly through this portal for fastest response")
+          )
+        ),
+        h('div', {className:"card"},
+          h('div', {className:"miniLabel"}, "Need to extend your stay?"),
+          h('p', {className:"sub", style:{margin:"0 0 12px"}}, "Extend in weekly increments at the same rate, or add a few days at a flat daily rate."),
+          h('button', {className:"btn btn-secondary btn-block", onClick:()=>{setShowExtend(true); setExtendChoice(null); setExtendPaid(false);}}, "Request an extension")
+        )
+      )
+    ),
+
+    showExtend && h('div', {className:"modalWrap"},
+      h('div', {className:"modal"},
+        h('div', {className:"modalHead"},
+          h('h2', {style:{margin:0}}, extendPaid ? "Extension confirmed" : "Extend your stay"),
+          h('button', {className:"xbtn", onClick:()=>setShowExtend(false)}, "✕")
+        ),
+        !extendPaid && h(React.Fragment, null,
+          h('p', {className:"sub", style:{margin:"0 0 14px"}}, "Current stay: " + currentNights + " nights. Choose how much longer you'd like to stay."),
+          extendOptions.map(opt => {
+            const ext = extensionCost(opt.nights);
+            const isPartial = opt.nights < 7;
+            return h('div', {
+              key: opt.label,
+              className: "extendBox" + (extendChoice===opt.nights ? " active" : ""),
+              onClick: () => setExtendChoice(opt.nights)
+            },
+              h('div', {className:"t"}, opt.label + (isPartial ? " (daily rate)" : "")),
+              h('div', {className:"d"},
+                isPartial
+                  ? money(PARTIAL_DAY_RATE) + "/day × " + opt.nights + " days = " + money(ext.cost)
+                  : money(WEEKLY_RATE) + "/week × " + ext.addWeeks + " = " + money(ext.cost),
+                ext.cleaningTrigger > 0 ? " + " + money(ext.cleaningTrigger) + " cleaning fee (crosses 2-week mark)" : ""
+              )
+            );
+          }),
+          extendChoice && h('div', {className:"card", style:{marginTop:14, marginBottom:0}},
+            h('div', {className:"summaryLine total"}, h('span',null,"Extension total"), h('span',null, money(extensionCost(extendChoice).total)))
+          ),
+          h('div', {className:"btnRow"},
+            h('button', {className:"btn btn-primary btn-block", disabled: !extendChoice, onClick: () => {
+              setCurrentNights(currentNights + extendChoice);
+              setExtendPaid(true);
+            }}, extendChoice ? "Pay " + money(extensionCost(extendChoice).total) + " and extend" : "Select an option")
+          )
+        ),
+        extendPaid && h(React.Fragment, null,
+          h('p', {className:"sub"}, "Your stay has been extended. Updated check-out and lease amendment will be emailed to you."),
+          h('div', {className:"card", style:{marginBottom:0}},
+            h('div', {className:"summaryLine"}, h('span',{className:"muted"},"New total stay length"), h('span',null, currentNights + " nights"))
+          ),
+          h('div', {className:"btnRow"},
+            h('button', {className:"btn btn-secondary btn-block", onClick:()=>setShowExtend(false)}, "Done")
+          )
+        )
+      )
+    )
+  );
+}
+
+function AdminView() {
+  const [properties, setProperties] = useState(INITIAL_PROPERTIES);
+  const [bookings, setBookings] = useState([]);
+  const [showAdd, setShowAdd] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(null);
+  const [newProp, setNewProp] = useState({ name:"", area:"", beds:"4", baths:"3", sqft:"", amenities:"" });
+
+  function loadProperties() {
+    fetch('/.netlify/functions/properties')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data) && data.length) setProperties(data); })
+      .catch(() => {});
+  }
+  function loadBookings() {
+    fetch('/.netlify/functions/bookings')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setBookings(data); })
+      .catch(() => {});
+  }
+  React.useEffect(() => { loadProperties(); loadBookings(); }, []);
+  const occupied = properties.filter(p=>p.status==="occupied").length;
+  const totalRevenue = bookings.reduce((s,b)=>s+(b.total||0),0);
+
+  function addProperty() {
+    if (!newProp.name || !newProp.area) return;
+    const payload = {
+      name: newProp.name, area: newProp.area,
+      beds: Number(newProp.beds)||4, baths: Number(newProp.baths)||3, sqft: Number(newProp.sqft)||2000,
+      amenities: newProp.amenities.split(",").map(s=>s.trim()).filter(Boolean)
+    };
+    fetch('/.netlify/functions/properties', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    }).then(() => loadProperties()).catch(() => {});
+    setNewProp({ name:"", area:"", beds:"4", baths:"3", sqft:"", amenities:"" });
+    setShowAdd(false);
+  }
+
+  function removeProperty(id) {
+    fetch('/.netlify/functions/properties?id=' + encodeURIComponent(id), { method: 'DELETE' })
+      .then(() => loadProperties()).catch(() => {});
+    setConfirmRemove(null);
+  }
+
+  return h('div', {className:"app"},
+    h('div', {className:"topnav"},
+      h('div', {className:"brand"},
+        h('img',{src:LOGO_SRC, alt:"Agape Property Management", style:{height:"26px"}}),
+        h('span', {style:{color:"var(--olive-dark)", fontFamily:"var(--serif)", fontSize:"16px", fontWeight:600, letterSpacing:"0.2px"}}, "Agape Property Management"),
+        h('span',{style:{color:"var(--ink-soft)", fontWeight:500}}," — Admin")
+      )
+    ),
+    h('div', {className:"screen"},
+      h('h1', null, "Property operations"),
+      h('p', {className:"sub"}, properties.length + " townhomes · Weekly furnished-stay program"),
+      h('div', {className:"statGrid"},
+        h('div', {className:"stat"}, h('div',{className:"label"},"Homes occupied"), h('div',{className:"value"}, occupied + " / " + properties.length)),
+        h('div', {className:"stat"}, h('div',{className:"label"},"Active bookings"), h('div',{className:"value"}, bookings.length)),
+        h('div', {className:"stat"}, h('div',{className:"label"},"Pending review"), h('div',{className:"value"}, bookings.filter(b=>b.status==="pending").length)),
+        h('div', {className:"stat"}, h('div',{className:"label"},"Booked revenue"), h('div',{className:"value"}, money(totalRevenue)))
+      ),
+      h('div', {className:"card"},
+        h('div', {className:"miniLabel"}, "Reservations"),
+        bookings.length === 0 && h('p', {className:"sub", style:{margin:0}}, "No bookings yet. They'll show up here once a guest completes the booking flow."),
+        bookings.length > 0 && h('table', {className:"admin"},
+          h('thead', null, h('tr', null,
+            h('th',null,"Guest"), h('th',null,"Property"), h('th',null,"Dates"), h('th',null,"Nights"), h('th',null,"Total"), h('th',null,"Status")
+          )),
+          h('tbody', null,
+            bookings.map(b => h('tr', {key:b.id},
+              h('td',null,b.guestName || "—"), h('td',null,b.propertyName || "—"), h('td',null,(b.checkIn||"?") + " → " + (b.checkOut||"?")), h('td',null,b.nights || "—"),
+              h('td',null,money(b.total||0)),
+              h('td',null, h('span',{className:"statusTag "+(b.status==='pending_payment'?'pending':'confirmed')}, b.status || "pending"))
+            ))
+          )
+        )
+      ),
+      h('div', {className:"card"},
+        h('div', {className:"cardHead"},
+          h('div', {className:"miniLabel", style:{margin:0}}, "Homes"),
+          h('button', {className:"btn btn-secondary btn-sm", onClick:()=>setShowAdd(true)}, "+ Add property")
+        ),
+        h('table', {className:"admin"},
+          h('thead', null, h('tr', null, h('th',null,"Property"), h('th',null,"Area"), h('th',null,"Beds/Baths"), h('th',null,"Status"), h('th',null,""))),
+          h('tbody', null,
+            properties.map(p => h('tr', {key:p.id},
+              h('td',null,p.name), h('td',null,p.area), h('td',null,p.beds+" / "+p.baths),
+              h('td',null, h('span',{className:"statusTag "+(p.status==="occupied"?"occupied":"available")}, p.status)),
+              h('td',null, h('button', {className:"btn btn-danger btn-sm", onClick:()=>setConfirmRemove(p.id)}, "Remove"))
+            ))
+          )
+        )
+      )
+    ),
+
+    showAdd && h('div', {className:"modalWrap"},
+      h('div', {className:"modal"},
+        h('div', {className:"modalHead"},
+          h('h2', {style:{margin:0}}, "Add a property"),
+          h('button', {className:"xbtn", onClick:()=>setShowAdd(false)}, "✕")
+        ),
+        h('label', null, "Property name"),
+        h('input', {type:"text", placeholder:"The Ashford Townhome", value:newProp.name, onChange:e=>setNewProp({...newProp, name:e.target.value})}),
+        h('label', null, "Area / neighborhood"),
+        h('input', {type:"text", placeholder:"Oak Lawn", value:newProp.area, onChange:e=>setNewProp({...newProp, area:e.target.value})}),
+        h('div', {className:"row2"},
+          h('div', null, h('label', null, "Bedrooms"), h('input', {type:"number", value:newProp.beds, onChange:e=>setNewProp({...newProp, beds:e.target.value})})),
+          h('div', null, h('label', null, "Bathrooms"), h('input', {type:"number", step:"0.5", value:newProp.baths, onChange:e=>setNewProp({...newProp, baths:e.target.value})}))
+        ),
+        h('label', null, "Square footage"),
+        h('input', {type:"number", placeholder:"2100", value:newProp.sqft, onChange:e=>setNewProp({...newProp, sqft:e.target.value})}),
+        h('label', null, "Amenities (comma separated)"),
+        h('textarea', {placeholder:"Full kitchen, In-unit laundry, Fenced yard", value:newProp.amenities, onChange:e=>setNewProp({...newProp, amenities:e.target.value})}),
+        h('div', {className:"btnRow"},
+          h('button', {className:"btn btn-secondary", onClick:()=>setShowAdd(false)}, "Cancel"),
+          h('button', {className:"btn btn-primary btn-block", disabled: !newProp.name || !newProp.area, onClick: addProperty}, "Add property")
+        )
+      )
+    ),
+
+    confirmRemove && h('div', {className:"modalWrap"},
+      h('div', {className:"modal", style:{maxWidth:380}},
+        h('h2', null, "Remove this listing?"),
+        h('p', {className:"sub"}, "This will remove " + (properties.find(p=>p.id===confirmRemove)||{}).name + " from the booking site. Existing reservations aren't affected."),
+        h('div', {className:"btnRow"},
+          h('button', {className:"btn btn-secondary btn-block", onClick:()=>setConfirmRemove(null)}, "Cancel"),
+          h('button', {className:"btn btn-danger btn-block", onClick:()=>removeProperty(confirmRemove)}, "Remove")
+        )
+      )
+    )
+  );
+}
+
+function App() {
+  const [mode, setMode] = useState("guest");
+  return h(React.Fragment, null,
+    h('div', {style:{display:"flex", justifyContent:"flex-end", padding:"10px 20px", background:"var(--card)", borderBottom:"1px solid var(--line)"}},
+      h('div', {className:"modeToggle"},
+        h('button', {className: mode==="guest"?"active":"", onClick:()=>setMode("guest")}, "Guest booking flow"),
+        h('button', {className: mode==="admin"?"active":"", onClick:()=>setMode("admin")}, "Admin view")
+      )
+    ),
+    mode === "guest" ? h(GuestFlow) : h(AdminView)
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
